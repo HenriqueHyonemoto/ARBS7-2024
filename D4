@@ -1,0 +1,128 @@
+/**
+IFSP - INSTITUTO FEDERAL DE EDUC., CIÊNCIA E TECNOLOGIA DE SÃO PAULO - Brazil
+Prof. Osvandre Martins - osvandre@ifsp.edu.br - OUT/2023  
+
+Demo#04a - ReadDHT22-Modularizado
+EXEMPLO DE CÓDIGO-FONTE COM DOCUMENTAÇÃO E MODULARIZAÇÃO POR FUNÇÕES.
+
+Programa de exemplo para leitura do Sensor de Temperatura e Umidade DHT22
+Codificação baseada no trabalho de Michalis Vasilakis 1/7/2015
+Mais info: http://www.ardumotive.com/how-to-use-dht-22-sensor-en.html
+Autor: Prof. Osvandre Martins 
+Arquivo: ReadDHT22.ino
+
+HISTÓRICO DE VERSÕES
+  Nº   Data       Autor            Descrição
+1.0   20/10/2023 Prof. Osvandre   Versão inicial
+1.1   21/10/2023 Prof. Osvandre   Mudança de pino de leitura para 8 liberando pino 2 para interrupções
+*/
+
+/** BIBLIOTECAS NECESSÁRIAS **/
+#include <DHT.h>; //Leituras e processamento de sinais do sensor DHT22 
+
+
+/** CONSTANTES **/
+#define DHTPIN 8     // Pino digital para leitura do DHT22
+#define DHTTYPE DHT22   // DHT 22  (AM2302) - Esta biblioteca funciona com outgras variações do DHT (DHT11)
+
+/**Leds Temp**/
+#define REDTEMP_PIN 11
+#define GREENTEMP_PIN 12
+/**Leds Umid**/
+#define YELLOWUMID_PIN 9
+#define GREENUMID_PIN 10
+
+#define MAX_TEMP 30
+#define MIN_UMID 10
+
+
+//#define GREEN_PIN 10
+
+/** VARIÁVEIS **/
+DHT dht(DHTPIN, DHTTYPE); //Inicializa objeto DHT para Arduino em 16mhz
+float hum;  //Armazena valor de humidade
+float temp; //Armazedna valor de temperatura
+
+
+/** PROTÓTIPOS DE FUNÇÕES **/
+//Indica que essas funções existem e estão implementadas em algum lugar nas partes dessa solução
+//Opcional com a Arduino IDE.
+//Se não forem declarados, os protótipos, as funções têm que ser apresentadas antes de serem usadas.
+//Se apresentados, os protótipos, a posição de implementação é independente.
+void readSensor();
+void showValues();
+
+void mostraTemp();
+void mostraUmid();
+
+
+
+
+/** CONFIGURAÇÃO INICIAL DO DISPSITIVO DE CONTROLE DE AUTOMAÇÃO **/
+void setup()
+{
+  pinMode(GREENTEMP_PIN, OUTPUT);
+  pinMode(REDTEMP_PIN, OUTPUT);
+  pinMode(YELLOWUMID_PIN, OUTPUT);
+  pinMode(GREENUMID_PIN, OUTPUT);
+  Serial.begin(9600); //Inicializa comunicação Serial para enviar e receber dados na console
+	dht.begin(); //Inicializa Sensor DHT22
+}
+
+
+
+/** ROTINA CÍCLICA - A FREQUÊNCIA DEPENDE DO TRABALHO QUE ELA EXECUTA */
+void loop()
+{ 
+  readSensor();
+  showValues();
+
+  mostraTemp();
+  mostraUmid();
+}
+
+/**
+ Realiza leitura de temperatura e umidade guardando nas variáveis para uso posterior
+ Parâmetros: Não há!
+ Retorno: Não há! Valores registrados em variáveis globais.
+ */
+void readSensor() {
+  hum = dht.readHumidity();
+  temp = dht.readTemperature();
+}
+
+void mostraTemp(){
+  if (temp > MAX_TEMP){
+  digitalWrite(GREENTEMP_PIN, LOW);
+  digitalWrite(REDTEMP_PIN, HIGH);
+  }else{
+    digitalWrite(GREENTEMP_PIN, HIGH);
+  digitalWrite(REDTEMP_PIN, LOW);
+  }
+}
+
+void mostraUmid(){
+  if (hum < MIN_UMID){
+  digitalWrite(YELLOWUMID_PIN, HIGH);
+  digitalWrite(GREENUMID_PIN, LOW);
+  }else{
+    digitalWrite(YELLOWUMID_PIN, LOW);
+    digitalWrite(GREENUMID_PIN, HIGH);
+  }
+}
+
+
+
+/**
+  Exibe os valores das variáveis na console.
+  Parâmetros: Não há!  Valores obtidos de variáveis globais.  
+  Retorno: Não há!
+**/
+void showValues() {
+  Serial.print("Umid: ");
+  Serial.print(hum);
+  Serial.print("%, Temp: ");
+  Serial.print(temp);
+  Serial.println(" Celsius");
+  delay(2000); //Delay 2 seg.
+}
