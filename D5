@@ -1,0 +1,54 @@
+/**
+IFSP - INSTITUTO FEDERAL DE EDUC., CIÊNCIA E TECNOLOGIA DE SÃO PAULO - Brazil
+Prof. Osvandre Martins - osvandre@ifsp.edu.br - OUT/2023  
+
+Demo#06 - Leitura Analogica LDR - Uso LCD I2C
+
+Adaptado de 
+Photoresistor (LDR) Analog Demo - Copyright (C) 2021 Uri Shaked.
+https://wokwi.com/arduino/projects/305193627138654786
+*/
+
+#include <LiquidCrystal_I2C.h>
+
+#define RED_PIN 5
+
+// LDR Characteristics
+const float GAMMA = 0.7;
+const float RL10 = 50;
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); //Endereço I2C, Colunas, Linhas
+
+void setup() {
+
+  pinMode(RED_PIN, OUTPUT);
+
+  lcd.init();
+  lcd.backlight();
+}
+
+void loop() {
+  int analogValue = analogRead(A0); //Leitura analógica do sensor para cálculos
+  float voltage = analogValue / 1024. * 5;
+  float resistance = 2000 * voltage / (1 - voltage / 5);
+  float lux = pow(RL10 * 1e3 * pow(10, GAMMA) / resistance, (1 / GAMMA));
+
+  lcd.setCursor(0, 0); //Posiciona cursor para exibir mensagem no LCD (Coluna, Linha)
+  lcd.print("Room: ");
+  if (lux > 50) {
+    lcd.print("Light!");
+    digitalWrite(RED_PIN, LOW);
+  } else {
+    lcd.print("Dark");
+    int ledIntensity = 255 - (lux * 255 / 50);
+    ledIntensity = constrain(ledIntensity, 0, 255);
+    analogWrite(RED_PIN, ledIntensity);
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print("Lux: ");
+  lcd.print(lux);
+  lcd.print("          ");
+
+  delay(100);
+}
